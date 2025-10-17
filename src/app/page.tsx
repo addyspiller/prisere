@@ -2,8 +2,7 @@
 
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { 
   FileText, 
   Clock, 
@@ -50,7 +49,7 @@ export default function Home() {
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
             Upload your Small Business insurance policy and renewal quote. Get a clear, factual analysis of what changed 
-            in plain English. Know exactly what you're signing before your renewal deadline.
+            in plain English. Know exactly what you&apos;re signing before your renewal deadline.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Link href="/sign-up">
@@ -59,7 +58,7 @@ export default function Home() {
               </Button>
             </Link>
             <Button variant="outline" size="lg" className="text-lg px-8 py-6" onClick={() => {
-              const section = document.querySelector('[id="how-it-works"]');
+              const section = document.querySelector('[id="how-it-works"]') as HTMLElement;
               if (section) {
                 const offsetTop = section.offsetTop - 100; // 100px offset for header
                 window.scrollTo({ top: offsetTop, behavior: 'smooth' });
@@ -93,7 +92,7 @@ export default function Home() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-prisere-dark-gray mb-4" 
                 style={{ fontFamily: 'var(--font-heading)' }}>
-              Insurance Renewals Shouldn't Be a Mystery
+              Insurance Renewals Shouldn&apos;t Be a Mystery
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Every year, business owners receive renewal quotes with dozens of changes buried in legal language. 
@@ -127,7 +126,7 @@ export default function Home() {
                 <Clock className="h-8 w-8 text-prisere-mustard mb-4" />
                 <h3 className="font-semibold text-lg mb-2">Time Pressure</h3>
                 <p className="text-gray-600 text-sm">
-                  Renewal deadlines don't wait. By the time you realize something's wrong, it's often too late to make changes.
+                  Renewal deadlines don&apos;t wait. By the time you realize something&apos;s wrong, it&apos;s often too late to make changes.
                 </p>
               </CardContent>
             </Card>

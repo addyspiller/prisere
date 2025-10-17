@@ -2,23 +2,13 @@
 
 import { use, useEffect, useState } from "react";
 import { Logo } from "@/components/brand/logo";
-import { PageHeader } from "@/components/brand/page-header";
-import { ChangeIndicator } from "@/components/brand/change-indicator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { UserButton } from "@clerk/nextjs";
 import { useAnalysisResult } from "@/hooks/use-analysis";
 import { QueryErrorBoundary } from "@/components/query-error-boundary";
 import { AppBreadcrumb } from "@/components/navigation/app-breadcrumb";
-import { PolicyChange } from "@/types/api";
-import { Download, FileText, MessageCircle, AlertTriangle, ChevronDown, ChevronUp, TrendingUp, TrendingDown } from "lucide-react";
+import { Download, FileText, ChevronDown, ChevronUp, TrendingUp } from "lucide-react";
 
 // Helper function to determine if a change is good or bad for the user
 // This drives the sidebar calculations for risk assessment and action items
@@ -173,7 +163,7 @@ function ResultsContent({ params }: { params: Promise<{ jobId: string }> }) {
               </div>
           
               <div className="space-y-3">
-                {result.changes.map((change, index) => {
+                {result.changes.map((change) => {
                   const isExpanded = expandedItems.includes(change.id);
                   const impact = getChangeImpact(change.category, change.change_type);
                   
