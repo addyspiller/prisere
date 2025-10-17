@@ -1,4 +1,22 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Prisere Insurance Comparison Tool - Frontend
+
+This is a [Next.js](https://nextjs.org) project for comparing insurance policy renewals with AI-powered analysis.
+
+## Authentication Setup
+
+The app uses Clerk for authentication with the following pages:
+
+### Pages
+- **/** - Public home page with sign-in/sign-up buttons
+- **/sign-in** - Clerk sign-in page (styled with Prisere branding)
+- **/sign-up** - Clerk sign-up page (styled with Prisere branding)
+- **/dashboard** - Protected dashboard (requires authentication)
+
+### Protected Routes
+The following routes require authentication:
+- `/dashboard/*`
+- `/analysis/*`
+- `/results/*`
 
 ## Getting Started
 
