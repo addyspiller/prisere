@@ -1,7 +1,9 @@
 import { AnalysisJob, AnalysisResult } from "@/types/api";
 
 // Use relative URL in development for MSW to work
-const API_BASE_URL = process.env.NODE_ENV === 'development' 
+// Enable mock mode in production until backend is ready
+const USE_MOCK_IN_PRODUCTION = process.env.NEXT_PUBLIC_USE_MOCK === 'true';
+const API_BASE_URL = (process.env.NODE_ENV === 'development' || USE_MOCK_IN_PRODUCTION)
   ? '/v1' 
   : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/v1';
 
