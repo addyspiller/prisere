@@ -1,0 +1,38 @@
+# FastAPI and server
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Database
+sqlalchemy==2.0.23
+# Note: psycopg2-binary (not psycopg2) is required for Windows
+# psycopg2 requires pg_config and PostgreSQL dev tools to compile from source
+# psycopg2-binary includes pre-compiled binaries, avoiding compilation issues
+psycopg2-binary==2.9.11
+alembic==1.12.1
+
+# AWS S3
+boto3==1.29.7
+
+# AI - Claude
+anthropic==0.7.7
+
+# PDF processing
+pypdf==3.17.1
+pdfplumber==0.10.3
+
+# Authentication
+pyjwt==2.8.0
+python-jose[cryptography]==3.3.0
+cryptography==41.0.7
+requests==2.31.0
+email-validator==2.1.1
+
+# Configuration
+pydantic==2.5.0
+pydantic-settings==2.1.0
+python-dotenv==1.0.0
+
+# Utilities
+python-dateutil==2.8.2
+
