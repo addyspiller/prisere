@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAuthenticatedApi } from "@/lib/api-client";
+import { analysisApi } from "@/lib/api";
 import { AnalysisJob } from "@/types/api";
 
 export const ANALYSIS_QUERY_KEYS = {
@@ -14,7 +14,6 @@ export const ANALYSIS_QUERY_KEYS = {
 // Create analysis mutation
 export function useCreateAnalysis() {
   const queryClient = useQueryClient();
-  const analysisApi = useAuthenticatedApi();
 
   return useMutation({
     mutationFn: ({
@@ -40,8 +39,6 @@ export function useCreateAnalysis() {
 
 // Get analysis status with polling
 export function useAnalysisStatus(jobId: string, enabled = true) {
-  const analysisApi = useAuthenticatedApi();
-  
   return useQuery({
     queryKey: ANALYSIS_QUERY_KEYS.status(jobId),
     queryFn: () => analysisApi.getAnalysisStatus(jobId),
@@ -60,8 +57,6 @@ export function useAnalysisStatus(jobId: string, enabled = true) {
 
 // Get analysis result
 export function useAnalysisResult(jobId: string, enabled = true) {
-  const analysisApi = useAuthenticatedApi();
-  
   return useQuery({
     queryKey: ANALYSIS_QUERY_KEYS.result(jobId),
     queryFn: () => analysisApi.getAnalysisResult(jobId),
@@ -72,8 +67,6 @@ export function useAnalysisResult(jobId: string, enabled = true) {
 
 // Get analysis history
 export function useAnalysisHistory() {
-  const analysisApi = useAuthenticatedApi();
-  
   return useQuery({
     queryKey: ANALYSIS_QUERY_KEYS.history(),
     queryFn: () => analysisApi.getAnalysisHistory(),

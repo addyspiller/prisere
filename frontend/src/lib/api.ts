@@ -1,7 +1,7 @@
 import { AnalysisJob, AnalysisResult } from "@/types/api";
 
-// For development, use local proxy. For production, use environment variable
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/v1';
+// API routes are now part of the Next.js app
+const API_BASE_URL = '/api/v1';
 
 export class ApiError extends Error {
   constructor(

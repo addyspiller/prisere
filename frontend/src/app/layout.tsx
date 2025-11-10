@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { QueryProvider } from "@/providers/query-provider";
-import { MSWProvider } from "./msw-provider";
+// import { MSWProvider } from "./msw-provider"; // No longer needed - using real API routes
 import "./globals.css";
 
 const geistSans = Geist({
@@ -33,11 +33,9 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          <MSWProvider>
-            <QueryProvider>
-              {children}
-            </QueryProvider>
-          </MSWProvider>
+          <QueryProvider>
+            {children}
+          </QueryProvider>
         </body>
       </html>
     </ClerkProvider>
