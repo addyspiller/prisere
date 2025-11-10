@@ -1,0 +1,21 @@
+{
+  "functions": {
+    "backend/api/index.py": {
+      "runtime": "python3.9"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/v1/:path*",
+      "destination": "/backend/api/index.py"
+    },
+    {
+      "source": "/health",
+      "destination": "/backend/api/index.py"
+    }
+  ],
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/.next",
+  "installCommand": "cd frontend && npm install",
+  "framework": "nextjs"
+}
