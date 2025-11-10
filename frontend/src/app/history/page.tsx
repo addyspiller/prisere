@@ -11,6 +11,7 @@ import { UserButton } from "@clerk/nextjs";
 import { AnalysisHistoryCard } from "@/components/dashboard/analysis-history-card";
 import { QueryErrorBoundary } from "@/components/query-error-boundary";
 import { useAnalysisHistory } from "@/hooks/use-analysis";
+import { AnalysisJob } from "@/types/api";
 import { Search, Filter, Download, Plus, SortAsc, SortDesc } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -35,14 +36,14 @@ function HistoryContent() {
   
   // Filter and sort analyses
   const filteredAndSortedAnalyses = analyses
-    .filter(analysis => {
+    .filter((analysis: AnalysisJob) => {
       const matchesSearch = 
         analysis.baseline_filename.toLowerCase().includes(searchQuery.toLowerCase()) ||
         analysis.renewal_filename.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus = statusFilter === "all" || analysis.status === statusFilter;
       return matchesSearch && matchesStatus;
     })
-    .sort((a, b) => {
+    .sort((a: AnalysisJob, b: AnalysisJob) => {
       let aValue: string | number;
       let bValue: string | number;
       
@@ -71,9 +72,9 @@ function HistoryContent() {
 
   const statusCounts = {
     all: analyses.length,
-    completed: analyses.filter(a => a.status === "completed").length,
-    processing: analyses.filter(a => a.status === "processing").length,
-    failed: analyses.filter(a => a.status === "failed").length,
+    completed: analyses.filter((a: AnalysisJob) => a.status === "completed").length,
+    processing: analyses.filter((a: AnalysisJob) => a.status === "processing").length,
+    failed: analyses.filter((a: AnalysisJob) => a.status === "failed").length,
   };
 
   const handleSort = (field: SortField) => {
@@ -263,7 +264,7 @@ function HistoryContent() {
               </Card>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filteredAndSortedAnalyses.map((analysis) => (
+                {filteredAndSortedAnalyses.map((analysis: AnalysisJob) => (
                   <AnalysisHistoryCard
                     key={analysis.job_id}
                     analysis={analysis}
