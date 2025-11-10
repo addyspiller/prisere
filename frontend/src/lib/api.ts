@@ -1,8 +1,7 @@
 import { AnalysisJob, AnalysisResult } from "@/types/api";
 
-// API calls will be proxied to backend through Vercel rewrites
-// This works in both development and production
-const API_BASE_URL = '/v1';
+// For development, use local proxy. For production, use environment variable
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/v1';
 
 export class ApiError extends Error {
   constructor(
