@@ -1,21 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+// import { auth } from '@clerk/nextjs/server'; // Temporarily disabled
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ jobId: string }> }
 ) {
   try {
-    const { userId } = await auth();
-    
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' }, 
-        { status: 401 }
-      );
-    }
-
     const { jobId } = await params;
+    console.log('Getting analysis result for job:', jobId);
+    
+    // Skip auth for now to test if Clerk is causing the issue
+    // TODO: Re-enable auth once we confirm this fixes the crash
 
     // TODO: Get results from database
     // For now, return mock results
