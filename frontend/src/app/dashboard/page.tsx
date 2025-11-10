@@ -11,6 +11,7 @@ import { UserButton } from "@clerk/nextjs";
 import { AnalysisHistoryCard } from "@/components/dashboard/analysis-history-card";
 import { QueryErrorBoundary } from "@/components/query-error-boundary";
 import { useAnalysisHistory } from "@/hooks/use-analysis";
+import { AnalysisJob } from "@/types/api";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 function DashboardContent() {
@@ -98,7 +99,7 @@ function DashboardContent() {
               </div>
 
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {analyses.slice(0, 6).map((analysis) => (
+                {analyses.slice(0, 6).map((analysis: AnalysisJob) => (
                   <AnalysisHistoryCard
                     key={analysis.job_id}
                     analysis={analysis}
