@@ -3,7 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { jobId: string } }
+  { params }: { params: Promise<{ jobId: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -15,7 +15,7 @@ export async function GET(
       );
     }
 
-    const { jobId } = params;
+    const { jobId } = await params;
 
     // TODO: Get job from database
     // For now, return mock status based on job age
