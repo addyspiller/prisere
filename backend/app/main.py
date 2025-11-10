@@ -56,9 +56,27 @@ async def root():
 
 
 # Import and include routers
-from app.routers import auth
+# Auth router disabled for testing without Clerk keys
+# from app.routers import auth
+# app.include_router(auth.router)
 
-app.include_router(auth.router)
+# Upload router (no auth required for testing)
+from app.routers import uploads
+app.include_router(uploads.router)
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Log startup information."""
+    logger.info("=" * 60)
+    logger.info("Prisere API Starting...")
+    logger.info(f"Environment: {settings.environment}")
+    logger.info(f"Port: {settings.port}")
+    logger.info("Registered routes:")
+    for route in app.routes:
+        if hasattr(route, "path") and hasattr(route, "methods"):
+            logger.info(f"  {list(route.methods)[0] if route.methods else 'GET'} {route.path}")
+    logger.info("=" * 60)
 
 
 if __name__ == "__main__":

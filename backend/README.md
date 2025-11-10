@@ -242,11 +242,35 @@ curl -H "Authorization: Bearer your-token" \
   http://localhost:3001/v1/auth/me
 ```
 
+## Upload Endpoints
+
+File uploads use presigned S3 URLs for direct client-to-S3 uploads.
+
+### Upload Flow
+
+1. **Initialize:** `POST /v1/uploads/init` - Get presigned URL
+2. **Upload:** POST file to presigned URL (direct to S3)
+3. **Verify:** `GET /v1/uploads/verify/{s3_key}` - Confirm upload
+
+### Endpoints
+
+- `POST /v1/uploads/init` - Initialize upload (returns presigned URL)
+- `GET /v1/uploads/verify/{s3_key}` - Verify file uploaded
+- `DELETE /v1/uploads/{s3_key}` - Delete file from S3
+
+See [S3 Upload Guide](docs/S3_UPLOAD_GUIDE.md) for detailed documentation.
+
+### File Constraints
+
+- **Type:** PDF only
+- **Max size:** 25MB
+- **URL expiration:** 1 hour
+
 ## Next Steps
 
 - [x] Database models and migrations
-- [x] Clerk authentication middleware
-- [ ] S3 upload service
+- [x] Clerk authentication middleware (disabled for testing)
+- [x] S3 upload service
 - [ ] PDF extraction service
 - [ ] Claude AI integration
 - [ ] Analysis endpoints
