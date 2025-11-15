@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     port: int = 3001
     environment: str = "development"
     allowed_origins: str = "http://localhost:3000,http://localhost:3001"
+    log_level: str = "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
     
     # Database
     database_url: str
