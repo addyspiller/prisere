@@ -61,8 +61,9 @@ async def root():
 # app.include_router(auth.router)
 
 # Upload router (no auth required for testing)
-from app.routers import uploads
+from app.routers import uploads, analyses
 app.include_router(uploads.router)
+app.include_router(analyses.router)
 
 
 @app.on_event("startup")

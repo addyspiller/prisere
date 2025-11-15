@@ -8,17 +8,23 @@ This script tests the full upload flow:
 3. Verify upload via backend API
 
 Usage:
-    python scripts/test_complete_upload.py
+    python scripts/test_complete_upload.py <pdf_file_path>
+
+Examples:
+    python scripts/test_complete_upload.py tests/test_files/prisere_upload_test.pdf
+    python scripts/test_complete_upload.py tests/test_files/Baseline_test.pdf
+    python scripts/test_complete_upload.py tests/test_files/Renewal_test.pdf
 
 Requirements:
     - Backend server running at http://localhost:3001
-    - Test PDF file at tests/test_files/prisere_upload_test.pdf
+    - PDF file path as command line argument
     - Python requests library: pip install requests
 """
 
 import sys
 import os
 import json
+import argparse
 from pathlib import Path
 
 # Add parent directory to path for imports
@@ -30,7 +36,58 @@ from app.config import settings
 
 # Configuration
 BACKEND_URL = f"http://localhost:{settings.port}"
-TEST_PDF_PATH = Path("tests/test_files/prisere_upload_test.pdf")
+
+
+def validate_pdf_file(file_path: str) -> Path:
+    """
+    Validate that the provided file path exists and is a PDF file.
+    
+    Args:
+        file_path: Path to the PDF file as a string
+        
+    Returns:
+        Path: Validated Path object
+        
+    Raises:
+        SystemExit: If file doesn't exist, is not a file, or is not a PDF
+    """
+    try:
+        pdf_path = Path(file_path)
+    except Exception as e:
+        print_error(f"Invalid file path: {file_path}")
+        print_error(f"Error: {e}")
+        sys.exit(1)
+    
+    # Check if file exists
+    if not pdf_path.exists():
+        print_error(f"File not found: {pdf_path}")
+        print_info("Please provide a valid path to a PDF file")
+        sys.exit(1)
+    
+    # Check if it's a file (not a directory)
+    if not pdf_path.is_file():
+        print_error(f"Path is not a file: {pdf_path}")
+        print_info("Please provide a path to a PDF file, not a directory")
+        sys.exit(1)
+    
+    # Check if file has .pdf extension
+    if pdf_path.suffix.lower() != '.pdf':
+        print_error(f"File is not a PDF: {pdf_path}")
+        print_info("Please provide a file with .pdf extension")
+        sys.exit(1)
+    
+    # Check file size (not empty)
+    try:
+        file_size = pdf_path.stat().st_size
+        if file_size == 0:
+            print_error(f"File is empty: {pdf_path}")
+            sys.exit(1)
+    except OSError as e:
+        print_error(f"Cannot read file: {pdf_path}")
+        print_error(f"Error: {e}")
+        sys.exit(1)
+    
+    return pdf_path
 
 
 def print_section(title):
@@ -56,7 +113,7 @@ def print_info(message):
     print(f"ℹ️  {message}")
 
 
-def step1_initialize_upload():
+def step1_initialize_upload(pdf_path: Path):
     """
     Step 1: Initialize upload via backend API.
     
@@ -65,6 +122,9 @@ def step1_initialize_upload():
     - fields: All required form fields for S3 upload
     - s3_key: The S3 object key where file will be stored
     
+    Args:
+        pdf_path: Path to the PDF file to upload
+        
     Returns:
         dict: Response JSON containing upload_url, fields, s3_key, etc.
         None: If initialization fails
@@ -72,20 +132,19 @@ def step1_initialize_upload():
     print_section("Step 1: Initialize Upload via Backend")
     
     try:
-        # Verify test file exists
-        if not TEST_PDF_PATH.exists():
-            print_error(f"Test PDF not found: {TEST_PDF_PATH}")
-            print_info("Please ensure the test file exists before running this script")
+        # Get file info (already validated, but check again for safety)
+        if not pdf_path.exists():
+            print_error(f"PDF file not found: {pdf_path}")
             return None
         
-        file_size = TEST_PDF_PATH.stat().st_size
-        print_info(f"Test file: {TEST_PDF_PATH}")
+        file_size = pdf_path.stat().st_size
+        print_info(f"PDF file: {pdf_path}")
         print_info(f"File size: {file_size:,} bytes ({file_size / 1024 / 1024:.2f} MB)")
         
         # Prepare request payload
         payload = {
             "file_type": "application/pdf",
-            "filename": TEST_PDF_PATH.name
+            "filename": pdf_path.name
         }
         
         print_info(f"Calling: POST {BACKEND_URL}/v1/uploads/init")
@@ -136,7 +195,7 @@ def step1_initialize_upload():
         return None
 
 
-def step2_upload_to_s3(init_data):
+def step2_upload_to_s3(init_data, pdf_path: Path):
     """
     Step 2: Upload PDF directly to S3 using presigned URL.
     
@@ -146,6 +205,7 @@ def step2_upload_to_s3(init_data):
     
     Args:
         init_data (dict): Response from step 1 containing upload_url and fields
+        pdf_path: Path to the PDF file to upload
         
     Returns:
         bool: True if upload successful, False otherwise
@@ -154,9 +214,14 @@ def step2_upload_to_s3(init_data):
     
     try:
         # Read PDF file
-        print_info(f"Reading PDF file: {TEST_PDF_PATH}")
-        with open(TEST_PDF_PATH, 'rb') as f:
-            file_content = f.read()
+        print_info(f"Reading PDF file: {pdf_path}")
+        
+        try:
+            with open(pdf_path, 'rb') as f:
+                file_content = f.read()
+        except IOError as e:
+            print_error(f"Failed to read PDF file: {e}")
+            return False
         
         print_success(f"Read {len(file_content):,} bytes from file")
         
@@ -175,7 +240,7 @@ def step2_upload_to_s3(init_data):
         # Prepare file for upload
         # Format: {'field_name': (filename, file_content, content_type)}
         files = {
-            'file': (TEST_PDF_PATH.name, file_content, 'application/pdf')
+            'file': (pdf_path.name, file_content, 'application/pdf')
         }
         print_info("  - Adding file field (last)")
         
@@ -293,12 +358,57 @@ def check_backend_connection():
         return False
 
 
+def parse_arguments():
+    """
+    Parse command line arguments.
+    
+    Returns:
+        argparse.Namespace: Parsed arguments
+    """
+    parser = argparse.ArgumentParser(
+        description="Test S3 upload flow with a PDF file",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python scripts/test_complete_upload.py tests/test_files/prisere_upload_test.pdf
+  python scripts/test_complete_upload.py tests/test_files/Baseline_test.pdf
+  python scripts/test_complete_upload.py tests/test_files/Renewal_test.pdf
+        """
+    )
+    
+    parser.add_argument(
+        "pdf_file",
+        type=str,
+        help="Path to the PDF file to upload"
+    )
+    
+    return parser.parse_args()
+
+
 def main():
     """Main test execution."""
     print()
     print("=" * 70)
     print("  S3 PRESIGNED URL UPLOAD TEST")
     print("=" * 70)
+    print()
+    
+    # Parse command line arguments
+    try:
+        args = parse_arguments()
+    except SystemExit:
+        # argparse already printed help/error, just exit
+        sys.exit(1)
+    
+    # Validate PDF file
+    print_info("Validating PDF file...")
+    try:
+        pdf_path = validate_pdf_file(args.pdf_file)
+        print_success(f"PDF file validated: {pdf_path}")
+    except SystemExit:
+        # Error already printed by validate_pdf_file
+        sys.exit(1)
+    
     print()
     print("This script tests the complete upload flow:")
     print("  1. Initialize upload (backend generates presigned URL)")
@@ -317,13 +427,13 @@ def main():
     print_success(f"Backend is running at {BACKEND_URL}")
     
     # Step 1: Initialize upload
-    init_data = step1_initialize_upload()
+    init_data = step1_initialize_upload(pdf_path)
     if not init_data:
         print_error("Failed at Step 1 - Cannot continue")
         sys.exit(1)
     
     # Step 2: Upload to S3
-    upload_success = step2_upload_to_s3(init_data)
+    upload_success = step2_upload_to_s3(init_data, pdf_path)
     if not upload_success:
         print_error("Failed at Step 2 - Cannot continue")
         sys.exit(1)

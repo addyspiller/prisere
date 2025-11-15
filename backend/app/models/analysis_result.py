@@ -90,25 +90,41 @@ class AnalysisResult(Base):
         Returns:
             AnalysisResult instance
         """
-        # Extract data from Claude response
-        changes = claude_data.get("changes", [])
-        change_categories = claude_data.get("summary", {}).get("change_categories", {})
+        # Extract data from Claude response (use correct field names from Claude prompt)
+        coverage_changes = claude_data.get("coverage_changes", [])
+        
+        # Build change_categories by counting changes per category
+        change_categories = {}
+        for change in coverage_changes:
+            category = change.get("category", "other")
+            change_categories[category] = change_categories.get(category, 0) + 1
         
         # Calculate average confidence if not provided
         confidence_score = None
-        if changes:
-            confidences = [c.get("confidence", 0) for c in changes if "confidence" in c]
+        if coverage_changes:
+            confidences = [c.get("confidence", 0) for c in coverage_changes if "confidence" in c]
             if confidences:
                 confidence_score = sum(confidences) / len(confidences)
         
+        # Convert broker_questions to suggested_actions format
+        broker_questions = claude_data.get("broker_questions", [])
+        suggested_actions = [
+            {
+                "category": "broker_review",
+                "action": question,
+                "priority": "high" if i < 2 else "medium"
+            }
+            for i, question in enumerate(broker_questions)
+        ]
+        
         return cls(
             job_id=job_id,
-            total_changes=len(changes),
+            total_changes=len(coverage_changes),
             change_categories=change_categories,
-            changes=changes,
+            changes=coverage_changes,
             premium_comparison=claude_data.get("premium_comparison"),
-            suggested_actions=claude_data.get("suggested_actions", []),
-            educational_insights=claude_data.get("educational_insights", []),
+            suggested_actions=suggested_actions,
+            educational_insights=[],  # Not provided by Claude, empty for now
             confidence_score=confidence_score,
             model_version=model_version,
             processing_time_seconds=processing_time,

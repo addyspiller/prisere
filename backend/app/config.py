@@ -25,7 +25,11 @@ class Settings(BaseSettings):
     
     # Anthropic Claude API
     anthropic_api_key: str
-    anthropic_model: str = "claude-3-5-sonnet-20241022"
+    # Available models (depending on your billing plan):
+    # - claude-3-haiku-20240307 (fast, cost-effective)
+    # - claude-3-sonnet-20240229 (balanced)
+    # - claude-3-5-sonnet-20241022 (most capable, requires upgraded plan)
+    anthropic_model: str = "claude-3-haiku-20240307"
     
     # File Upload Settings
     max_file_size_mb: int = 25

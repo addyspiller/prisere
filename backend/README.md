@@ -266,13 +266,95 @@ See [S3 Upload Guide](docs/S3_UPLOAD_GUIDE.md) for detailed documentation.
 - **Max size:** 25MB
 - **URL expiration:** 1 hour
 
+## PDF Processing
+
+Extract text and metadata from PDF insurance policies.
+
+### PDF Service Methods
+
+- `extract_text_from_bytes(pdf_bytes)` - Extract text from PDF
+- `get_pdf_metadata(pdf_bytes)` - Get page count and metadata
+- `validate_pdf(pdf_bytes)` - Check if PDF is valid
+- `extract_text_with_metadata(pdf_bytes)` - Get both text and metadata
+
+### Test PDF Service
+
+```bash
+python scripts/test_pdf_service.py
+```
+
+## Claude AI Integration
+
+Compare insurance policies using Claude 3.5 Sonnet.
+
+### Claude Service Methods
+
+- `compare_policies(baseline_text, renewal_text)` - Compare two policies
+- Returns structured JSON with:
+  - `summary` - High-level overview of changes
+  - `coverage_changes` - Array of specific differences
+  - `premium_comparison` - Premium amounts and changes
+  - `broker_questions` - Suggested questions for broker
+
+### Configuration
+
+- **Model:** Claude 3.5 Sonnet (`claude-3-5-sonnet-20241022`)
+- **Temperature:** 0.2 (low for consistency)
+- **Max tokens:** 16,000
+
+### Test Claude Service
+
+```bash
+python scripts/test_claude_service.py
+```
+
+**Note:** Requires `ANTHROPIC_API_KEY` in `.env`
+
+## Analysis Endpoints
+
+Create and manage policy comparison jobs.
+
+### Endpoints
+
+- `POST /v1/analyses` - Create analysis job (returns job_id, starts background processing)
+- `GET /v1/analyses/{job_id}/status` - Get job status and progress (for polling)
+- `GET /v1/analyses/{job_id}/result` - Get full results (only when completed)
+- `GET /v1/analyses` - List all user's jobs
+- `DELETE /v1/analyses/{job_id}` - Delete job and results
+
+### Analysis Flow
+
+1. **Upload PDFs** → Get S3 keys
+2. **Create analysis** → `POST /v1/analyses` with S3 keys
+3. **Poll status** → `GET /v1/analyses/{job_id}/status` every few seconds
+4. **Get results** → `GET /v1/analyses/{job_id}/result` when status is "completed"
+
+### Background Processing
+
+Jobs are processed asynchronously:
+1. Download PDFs from S3
+2. Extract text from both PDFs
+3. Compare with Claude AI
+4. Save results to database
+5. Delete PDFs from S3 (always, even if failed)
+6. Update job status throughout
+
+### Job Status
+
+- `pending` - Job created, not started yet
+- `processing` - Currently processing (0-100% progress)
+- `completed` - Successfully completed
+- `failed` - Processing failed (error_message included)
+
 ## Next Steps
 
 - [x] Database models and migrations
 - [x] Clerk authentication middleware (disabled for testing)
 - [x] S3 upload service
-- [ ] PDF extraction service
-- [ ] Claude AI integration
-- [ ] Analysis endpoints
-- [ ] Background job processing
+- [x] PDF extraction service
+- [x] Claude AI integration
+- [x] Analysis endpoints
+- [x] Background job processing
+- [ ] Re-enable authentication with Clerk keys
+- [ ] Production deployment
 
