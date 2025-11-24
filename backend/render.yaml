@@ -87,7 +87,7 @@ services:
         value: 365
 
   # PostgreSQL Database
-  - type: pgsql
+  - type: postgresql
     name: prisere-database
     region: ohio  # Same region as web service for lower latency
     plan: starter  # Change to 'standard' or higher for production
