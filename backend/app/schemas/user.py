@@ -12,7 +12,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     """Schema for creating a new user."""
-    id: str = Field(..., description="Clerk user ID")
+    id: str = Field(..., description="User ID")  # Previously: "Clerk user ID"
 
 
 class UserUpdate(BaseModel):

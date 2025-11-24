@@ -9,11 +9,11 @@ from app.database import Base
 class User(Base):
     """
     User model for storing authenticated user information.
-    User authentication is handled by Clerk, but we store user details locally.
+    # User authentication is handled by Clerk, but we store user details locally.
     """
     __tablename__ = "users"
 
-    # Primary key - using Clerk user ID as primary key
+    # Primary key - using user ID as primary key  # Previously: "Clerk user ID"
     id = Column(String(255), primary_key=True, index=True)
     
     # User details

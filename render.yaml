@@ -57,11 +57,11 @@ services:
       
       # Clerk Authentication
       # Set these in Render Dashboard
-      - key: CLERK_SECRET_KEY
-        sync: false
-      
-      - key: CLERK_PUBLISHABLE_KEY
-        sync: false
+      # - key: CLERK_SECRET_KEY
+      #   sync: false
+      # 
+      # - key: CLERK_PUBLISHABLE_KEY
+      #   sync: false
       
       # Anthropic Claude API
       # Set this in Render Dashboard
