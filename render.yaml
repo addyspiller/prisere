@@ -38,7 +38,7 @@ services:
       # These should be set in Render Dashboard for security
       - key: DATABASE_URL
         fromDatabase:
-          name: prisere-database
+          name: prisere-db
           property: connectionString
       
       # AWS S3 Configuration
