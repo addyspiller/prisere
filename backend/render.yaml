@@ -1,0 +1,116 @@
+services:
+  # FastAPI Backend Service
+  - type: web
+    name: prisere-backend
+    runtime: python
+    plan: starter  # Change to 'standard' or higher for production
+    region: ohio  # Change to your preferred region (oregon, frankfurt, singapore, ohio)
+    branch: main  # Change if using a different branch
+    buildCommand: |
+      pip install --upgrade pip setuptools wheel
+      pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    
+    envVars:
+      # Python Environment
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      
+      # Application Settings
+      - key: ENVIRONMENT
+        value: production
+      
+      - key: PORT
+        value: 3001
+      
+      - key: LOG_LEVEL
+        value: INFO
+      
+      - key: ALLOWED_ORIGINS
+        value: https://your-frontend-domain.vercel.app,https://your-custom-domain.com
+        # Update with your actual frontend URLs
+      
+      # Database (PostgreSQL)
+      # These should be set in Render Dashboard for security
+      - key: DATABASE_URL
+        fromDatabase:
+          name: prisere-database
+          property: connectionString
+      
+      # AWS S3 Configuration
+      # Set these in Render Dashboard
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      
+      - key: AWS_S3_BUCKET_NAME
+        sync: false
+      
+      - key: AWS_REGION
+        value: us-east-2
+      
+      # Clerk Authentication
+      # Set these in Render Dashboard
+      - key: CLERK_SECRET_KEY
+        sync: false
+      
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false
+      
+      # Anthropic Claude API
+      # Set this in Render Dashboard
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      
+      - key: ANTHROPIC_MODEL
+        value: claude-3-5-haiku-20241022
+      
+      # File Upload Settings
+      - key: MAX_FILE_SIZE_MB
+        value: 25
+      
+      - key: ALLOWED_FILE_TYPES
+        value: application/pdf
+      
+      # Processing Settings
+      - key: JOB_TIMEOUT_SECONDS
+        value: 120
+      
+      - key: PDF_RETENTION_HOURS
+        value: 24
+      
+      - key: RESULTS_RETENTION_DAYS
+        value: 365
+
+  # PostgreSQL Database
+  - type: pgsql
+    name: prisere-database
+    region: ohio  # Same region as web service for lower latency
+    plan: starter  # Change to 'standard' or higher for production
+    databaseName: prisere
+    databaseUser: prisere_user
+    ipAllowList: []  # Empty allows all (recommended for Render services)
+
+# Background Workers (Optional - if you want dedicated workers)
+# Uncomment if you need separate worker processes
+# - type: worker
+#   name: prisere-worker
+#   runtime: python
+#   plan: starter
+#   region: oregon
+#   branch: main
+#   buildCommand: |
+#     pip install --upgrade pip setuptools wheel
+#     pip install -r requirements.txt
+#   startCommand: python -m app.worker  # You'd need to create this worker script
+#   
+#   envVars:
+#     # Same environment variables as web service
+#     - key: DATABASE_URL
+#       fromDatabase:
+#         name: prisere-database
+#         property: connectionString
+

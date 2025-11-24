@@ -346,6 +346,18 @@ Jobs are processed asynchronously:
 - `completed` - Successfully completed
 - `failed` - Processing failed (error_message included)
 
+## Deployment
+
+See **[DEPLOYMENT.md](DEPLOYMENT.md)** for complete production deployment instructions for Render.com.
+
+Quick deploy:
+1. Push code to GitHub
+2. Create PostgreSQL database on Render
+3. Create Web Service on Render
+4. Add environment variables
+5. Run `alembic upgrade head` in Render Shell
+6. Done! ✅
+
 ## Next Steps
 
 - [x] Database models and migrations
@@ -355,6 +367,7 @@ Jobs are processed asynchronously:
 - [x] Claude AI integration
 - [x] Analysis endpoints
 - [x] Background job processing
+- [x] Deployment configuration (render.yaml)
 - [ ] Re-enable authentication with Clerk keys
-- [ ] Production deployment
+- [ ] Production deployment to Render
 
