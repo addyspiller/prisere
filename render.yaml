@@ -86,15 +86,6 @@ services:
       - key: RESULTS_RETENTION_DAYS
         value: 365
 
-  # PostgreSQL Database
-  - type: postgresql
-    name: prisere-database
-    region: ohio  # Same region as web service for lower latency
-    plan: starter  # Change to 'standard' or higher for production
-    databaseName: prisere
-    databaseUser: prisere_user
-    ipAllowList: []  # Empty allows all (recommended for Render services)
-
 # Background Workers (Optional - if you want dedicated workers)
 # Uncomment if you need separate worker processes
 # - type: worker
