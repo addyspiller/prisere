@@ -6,11 +6,13 @@ services:
     plan: starter  # Change to 'standard' or higher for production
     region: ohio  # Change to your preferred region (oregon, frankfurt, singapore, ohio)
     branch: main  # Change if using a different branch
-    rootDirectory: backend
     buildCommand: |
+      cd backend
       pip install --upgrade pip setuptools wheel
       pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: |
+      cd backend
+      uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     
     envVars:
