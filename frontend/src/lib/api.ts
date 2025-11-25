@@ -1,7 +1,7 @@
 import { AnalysisJob, AnalysisResult } from "@/types/api";
 
 // API routes are now part of the Next.js app
-const API_BASE_URL = '/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://prisere-backend.onrender.com/v1';
 
 export class ApiError extends Error {
   constructor(
@@ -67,7 +67,7 @@ export const analysisApi = {
     formData.append("baseline_file", baselineFile);
     formData.append("renewal_file", renewalFile);
 
-    return apiRequest<AnalysisJob>("/analysis", {
+    return apiRequest<AnalysisJob>("/analyses", {
       method: "POST",
       headers: {}, // Let browser set Content-Type for FormData
       body: formData,
@@ -76,16 +76,16 @@ export const analysisApi = {
 
   // Get analysis job status
   getAnalysisStatus: async (jobId: string): Promise<AnalysisJob> => {
-    return apiRequest<AnalysisJob>(`/analysis/${jobId}`);
+    return apiRequest<AnalysisJob>(`/analyses/${jobId}/status`);
   },
 
   // Get analysis results
   getAnalysisResult: async (jobId: string): Promise<AnalysisResult> => {
-    return apiRequest<AnalysisResult>(`/analysis/${jobId}/result`);
+    return apiRequest<AnalysisResult>(`/analyses/${jobId}/result`);
   },
 
   // Get user's analysis history
   getAnalysisHistory: async (): Promise<AnalysisJob[]> => {
-    return apiRequest<AnalysisJob[]>("/analysis/history");
+    return apiRequest<AnalysisJob[]>("/analyses");
   },
 };

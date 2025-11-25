@@ -40,7 +40,7 @@ export function useAuthenticatedApi() {
       formData.append("baseline_file", baselineFile);
       formData.append("renewal_file", renewalFile);
 
-      const response = await fetch("/v1/analysis", {
+      const response = await fetch("/v1/analyses", {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,
@@ -61,7 +61,7 @@ export function useAuthenticatedApi() {
     getAnalysisStatus: async (jobId: string) => {
       const token = await getToken();
       
-      const response = await fetch(`/v1/analysis/${jobId}`, {
+      const response = await fetch(`/v1/analyses/${jobId}/status`, {
         headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -83,7 +83,7 @@ export function useAuthenticatedApi() {
     getAnalysisResult: async (jobId: string) => {
       const token = await getToken();
       
-      const response = await fetch(`/v1/analysis/${jobId}/result`, {
+      const response = await fetch(`/v1/analyses/${jobId}/result`, {
         headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -105,7 +105,7 @@ export function useAuthenticatedApi() {
     getAnalysisHistory: async () => {
       const token = await getToken();
       
-      const response = await fetch("/v1/analysis/history", {
+      const response = await fetch("/v1/analyses", {
         headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),

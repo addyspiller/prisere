@@ -56,9 +56,9 @@ console.log('🔥 MSW: Sample data initialized. Total jobs:', Object.keys(analys
 console.log('🔥 MSW: Handlers module loaded, registering handlers...');
 
 export const handlers = [
-  // Analysis history endpoint - MUST come before the general analysis/{jobId} pattern
-  http.get('/v1/analysis/history', ({ request }) => {
-    console.log('🔥 MSW: HISTORY handler called!');
+  // List all analyses endpoint - MUST come before the general analyses/{jobId} pattern
+  http.get('/v1/analyses', ({ request }) => {
+    console.log('🔥 MSW: LIST ANALYSES handler called!');
     console.log('🔥 MSW: request.url:', request.url);
     console.log('🔥 MSW: analysisJobs object:', analysisJobs);
     console.log('🔥 MSW: Object.keys(analysisJobs):', Object.keys(analysisJobs));
@@ -74,7 +74,7 @@ export const handlers = [
   }),
 
   // Create analysis
-  http.post('/v1/analysis', async ({ request }) => {
+  http.post('/v1/analyses', async ({ request }) => {
     const formData = await request.formData();
     const baselineFile = formData.get("baseline_file") as File;
     const renewalFile = formData.get("renewal_file") as File;
@@ -114,7 +114,7 @@ export const handlers = [
   }),
 
   // Get analysis status
-  http.get('/v1/analysis/:jobId', ({ params, request }) => {
+  http.get('/v1/analyses/:jobId/status', ({ params, request }) => {
     console.log('🔥 MSW: STATUS handler called!');
     console.log('🔥 MSW: request.url:', request.url);
     
@@ -138,7 +138,7 @@ export const handlers = [
   }),
 
   // Get analysis result
-  http.get('/v1/analysis/:jobId/result', ({ params, request }) => {
+  http.get('/v1/analyses/:jobId/result', ({ params, request }) => {
     console.log('🔥 MSW: RESULT handler called!');
     console.log('🔥 MSW: request.url:', request.url);
     console.log('🔥 MSW: params:', params);
