@@ -31,8 +31,7 @@ services:
         value: INFO
       
       - key: ALLOWED_ORIGINS
-        value: https://your-frontend-domain.vercel.app,https://your-custom-domain.com
-        # Update with your actual frontend URLs
+        value: https://policy-pulse-teal.vercel.app,http://localhost:3000,http://localhost:3001
       
       # Database (PostgreSQL)
       # These should be set in Render Dashboard for security
