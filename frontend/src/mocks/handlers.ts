@@ -55,7 +55,57 @@ console.log('🔥 MSW: Sample data initialized. Total jobs:', Object.keys(analys
 
 console.log('🔥 MSW: Handlers module loaded, registering handlers...');
 
+// Mock S3 uploads storage
+const mockS3Uploads: Record<string, { filename: string; uploaded: boolean }> = {};
+
 export const handlers = [
+  // Initialize upload - returns mock presigned URL and S3 key
+  http.post('/v1/uploads/init', async ({ request }) => {
+    console.log('🔥 MSW: UPLOAD INIT handler called!');
+    const body = await request.json() as { file_type: string; filename: string };
+    
+    // Generate mock S3 key
+    const timestamp = Date.now();
+    const s3Key = `uploads/test_user_123/${timestamp}/${body.filename}`;
+    
+    // Store for later verification
+    mockS3Uploads[s3Key] = { filename: body.filename, uploaded: false };
+    
+    console.log('🔥 MSW: Generated S3 key:', s3Key);
+    
+    // Return mock presigned upload response
+    return HttpResponse.json({
+      upload_url: 'https://mock-s3.amazonaws.com/mock-bucket',
+      fields: {
+        key: s3Key,
+        'Content-Type': body.file_type,
+        policy: 'mock-policy',
+        'x-amz-algorithm': 'AWS4-HMAC-SHA256',
+        'x-amz-credential': 'mock-credential',
+        'x-amz-date': new Date().toISOString(),
+        'x-amz-signature': 'mock-signature',
+      },
+      s3_key: s3Key,
+      expires_at: new Date(Date.now() + 3600000).toISOString(),
+      max_file_size_mb: 25,
+    });
+  }),
+
+  // Mock S3 upload (intercept direct S3 uploads)
+  http.post('https://mock-s3.amazonaws.com/mock-bucket', async ({ request }) => {
+    console.log('🔥 MSW: S3 UPLOAD handler called!');
+    const formData = await request.formData();
+    const s3Key = formData.get('key') as string;
+    
+    if (s3Key && mockS3Uploads[s3Key]) {
+      mockS3Uploads[s3Key].uploaded = true;
+      console.log('🔥 MSW: File uploaded to S3:', s3Key);
+    }
+    
+    // S3 returns 204 No Content on successful upload
+    return new HttpResponse(null, { status: 204 });
+  }),
+
   // List all analyses endpoint - MUST come before the general analyses/{jobId} pattern
   http.get('/v1/analyses', ({ request }) => {
     console.log('🔥 MSW: LIST ANALYSES handler called!');
@@ -73,18 +123,28 @@ export const handlers = [
     return HttpResponse.json(history);
   }),
 
-  // Create analysis
+  // Create analysis - now expects JSON with S3 keys
   http.post('/v1/analyses', async ({ request }) => {
-    const formData = await request.formData();
-    const baselineFile = formData.get("baseline_file") as File;
-    const renewalFile = formData.get("renewal_file") as File;
+    console.log('🔥 MSW: CREATE ANALYSIS handler called!');
+    const body = await request.json() as {
+      baseline_s3_key: string;
+      renewal_s3_key: string;
+      metadata_company_name?: string;
+      metadata_policy_type?: string;
+    };
 
-    if (!baselineFile || !renewalFile) {
+    console.log('🔥 MSW: Request body:', body);
+
+    if (!body.baseline_s3_key || !body.renewal_s3_key) {
       return HttpResponse.json(
-        { message: "Both baseline_file and renewal_file are required" },
-        { status: 400 }
+        { message: "Both baseline_s3_key and renewal_s3_key are required" },
+        { status: 422 }
       );
     }
+
+    // Extract filenames from S3 keys
+    const baselineFilename = body.baseline_s3_key.split('/').pop() || 'unknown.pdf';
+    const renewalFilename = body.renewal_s3_key.split('/').pop() || 'unknown.pdf';
 
     const jobId = `mock-job-${nextJobId++}`;
     const job: AnalysisJob = {
@@ -92,12 +152,14 @@ export const handlers = [
       status: "processing",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      baseline_filename: baselineFile.name,
-      renewal_filename: renewalFile.name,
+      baseline_filename: baselineFilename,
+      renewal_filename: renewalFilename,
       estimated_completion_time: new Date(Date.now() + 120000).toISOString(), // 2 minutes from now
     };
 
     analysisJobs[jobId] = job;
+
+    console.log('🔥 MSW: Created analysis job:', jobId);
 
     // Simulate processing -> completed after 15 seconds
     setTimeout(() => {
@@ -107,6 +169,7 @@ export const handlers = [
           status: "completed",
           updated_at: new Date().toISOString(),
         };
+        console.log('🔥 MSW: Job completed:', jobId);
       }
     }, 15000);
 

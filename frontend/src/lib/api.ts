@@ -57,20 +57,97 @@ async function apiRequest<T>(
   }
 }
 
+// Types for upload flow
+interface UploadInitResponse {
+  upload_url: string;
+  fields: Record<string, string>;
+  s3_key: string;
+  expires_at: string;
+  max_file_size_mb: number;
+}
+
 export const analysisApi = {
-  // Create a new analysis job
-  createAnalysis: async (
+  // Step 1: Upload files to S3 and get S3 keys
+  uploadFiles: async (
     baselineFile: File,
     renewalFile: File
-  ): Promise<AnalysisJob> => {
-    const formData = new FormData();
-    formData.append("baseline_file", baselineFile);
-    formData.append("renewal_file", renewalFile);
+  ): Promise<{ baseline_s3_key: string; renewal_s3_key: string }> => {
+    // Upload baseline file
+    const baselineInit = await apiRequest<UploadInitResponse>("/uploads/init", {
+      method: "POST",
+      body: JSON.stringify({
+        file_type: "application/pdf",
+        filename: baselineFile.name,
+      }),
+    });
 
+    // Upload to S3 using presigned URL
+    const baselineFormData = new FormData();
+    Object.entries(baselineInit.fields).forEach(([key, value]) => {
+      baselineFormData.append(key, value);
+    });
+    baselineFormData.append("file", baselineFile);
+
+    const baselineS3Response = await fetch(baselineInit.upload_url, {
+      method: "POST",
+      body: baselineFormData,
+    });
+
+    if (!baselineS3Response.ok) {
+      throw new ApiError(
+        "Failed to upload baseline file to S3",
+        baselineS3Response.status
+      );
+    }
+
+    // Upload renewal file
+    const renewalInit = await apiRequest<UploadInitResponse>("/uploads/init", {
+      method: "POST",
+      body: JSON.stringify({
+        file_type: "application/pdf",
+        filename: renewalFile.name,
+      }),
+    });
+
+    // Upload to S3 using presigned URL
+    const renewalFormData = new FormData();
+    Object.entries(renewalInit.fields).forEach(([key, value]) => {
+      renewalFormData.append(key, value);
+    });
+    renewalFormData.append("file", renewalFile);
+
+    const renewalS3Response = await fetch(renewalInit.upload_url, {
+      method: "POST",
+      body: renewalFormData,
+    });
+
+    if (!renewalS3Response.ok) {
+      throw new ApiError(
+        "Failed to upload renewal file to S3",
+        renewalS3Response.status
+      );
+    }
+
+    return {
+      baseline_s3_key: baselineInit.s3_key,
+      renewal_s3_key: renewalInit.s3_key,
+    };
+  },
+
+  // Step 2: Create analysis job with S3 keys
+  createAnalysis: async (
+    baseline_s3_key: string,
+    renewal_s3_key: string,
+    metadata?: { company_name?: string; policy_type?: string }
+  ): Promise<AnalysisJob> => {
     return apiRequest<AnalysisJob>("/analyses", {
       method: "POST",
-      headers: {}, // Let browser set Content-Type for FormData
-      body: formData,
+      body: JSON.stringify({
+        baseline_s3_key,
+        renewal_s3_key,
+        metadata_company_name: metadata?.company_name,
+        metadata_policy_type: metadata?.policy_type,
+      }),
     });
   },
 

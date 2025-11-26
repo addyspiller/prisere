@@ -11,18 +11,33 @@ export const ANALYSIS_QUERY_KEYS = {
   history: () => [...ANALYSIS_QUERY_KEYS.all, "history"] as const,
 };
 
-// Create analysis mutation
+// Create analysis mutation (two-step: upload files, then create analysis)
 export function useCreateAnalysis() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       baselineFile,
       renewalFile,
+      metadata,
     }: {
       baselineFile: File;
       renewalFile: File;
-    }) => analysisApi.createAnalysis(baselineFile, renewalFile),
+      metadata?: { company_name?: string; policy_type?: string };
+    }) => {
+      // Step 1: Upload files to S3 and get S3 keys
+      const { baseline_s3_key, renewal_s3_key } = await analysisApi.uploadFiles(
+        baselineFile,
+        renewalFile
+      );
+
+      // Step 2: Create analysis job with S3 keys
+      return analysisApi.createAnalysis(
+        baseline_s3_key,
+        renewal_s3_key,
+        metadata
+      );
+    },
     onSuccess: (data: AnalysisJob) => {
       // Cache the new job status
       queryClient.setQueryData(
