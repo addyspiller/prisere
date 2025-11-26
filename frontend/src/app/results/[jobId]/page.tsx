@@ -118,17 +118,21 @@ function ResultsContent({ params }: { params: Promise<{ jobId: string }> }) {
             <span className="text-gray-600">
               <span className="font-semibold text-prisere-dark-gray">{result.summary.total_changes}</span> changes found
             </span>
-            <span className="text-gray-400">•</span>
-            <span className={`font-semibold ${
-              result.premium_comparison.percentage_change > 0 
-                ? 'text-prisere-maroon' 
-                : result.premium_comparison.percentage_change < 0 
-                ? 'text-prisere-teal' 
-                : 'text-gray-600'
-            }`}>
-              {result.premium_comparison.percentage_change > 0 ? '+' : ''}
-              {result.premium_comparison.percentage_change}% premium change
-            </span>
+            {result.premium_comparison.percentage_change !== null && (
+              <>
+                <span className="text-gray-400">•</span>
+                <span className={`font-semibold ${
+                  result.premium_comparison.percentage_change > 0 
+                    ? 'text-prisere-maroon' 
+                    : result.premium_comparison.percentage_change < 0 
+                    ? 'text-prisere-teal' 
+                    : 'text-gray-600'
+                }`}>
+                  {result.premium_comparison.percentage_change > 0 ? '+' : ''}
+                  {result.premium_comparison.percentage_change}% premium change
+                </span>
+              </>
+            )}
           </div>
         </div>
 
@@ -286,10 +290,12 @@ function ResultsContent({ params }: { params: Promise<{ jobId: string }> }) {
                       <span>Changes Detected:</span>
                       <span className="font-medium text-gray-800">{result.changes.length} total</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Premium Change:</span>
-                      <span className="font-medium text-gray-800">${Math.abs(result.premium_comparison.difference).toLocaleString()}/year</span>
-                    </div>
+                    {result.premium_comparison.difference !== null && (
+                      <div className="flex justify-between">
+                        <span>Premium Change:</span>
+                        <span className="font-medium text-gray-800">${Math.abs(result.premium_comparison.difference).toLocaleString()}/year</span>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -306,7 +312,9 @@ function ResultsContent({ params }: { params: Promise<{ jobId: string }> }) {
                   <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg">
                     <p className="text-sm font-medium text-amber-800 mb-2">Summary of Changes</p>
                     <div className="space-y-1 text-xs text-amber-700">
-                      <p>• Premium increased by 10% (${result.premium_comparison.difference.toLocaleString()})</p>
+                      {result.premium_comparison.difference !== null && result.premium_comparison.percentage_change !== null && (
+                        <p>• Premium {result.premium_comparison.difference > 0 ? 'increased' : 'decreased'} by {Math.abs(result.premium_comparison.percentage_change)}% (${Math.abs(result.premium_comparison.difference).toLocaleString()})</p>
+                      )}
                       <p>• {result.changes.filter(c => getChangeImpact(c.category, c.change_type) === 'bad').length} coverage modifications detected</p>
                       <p>• Changes affect liability limits, deductibles, and exclusions</p>
                     </div>
@@ -321,53 +329,74 @@ function ResultsContent({ params }: { params: Promise<{ jobId: string }> }) {
               </Card>
 
               {/* Financial Breakdown */}
-              <Card className="border-l-4 border-l-prisere-teal">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg" style={{ fontFamily: 'var(--font-heading)' }}>
-                    <TrendingUp className="h-4 w-4 text-prisere-teal" />
-                    Financial Impact
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-3 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Current Premium:</span>
-                      <span className="font-medium">${result.premium_comparison.baseline_premium.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Renewal Premium:</span>
-                      <span className={`font-medium ${
+              {result.premium_comparison.baseline_premium !== null && 
+               result.premium_comparison.renewal_premium !== null && 
+               result.premium_comparison.difference !== null ? (
+                <Card className="border-l-4 border-l-prisere-teal">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-lg" style={{ fontFamily: 'var(--font-heading)' }}>
+                      <TrendingUp className="h-4 w-4 text-prisere-teal" />
+                      Financial Impact
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-3 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Current Premium:</span>
+                        <span className="font-medium">${result.premium_comparison.baseline_premium.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Renewal Premium:</span>
+                        <span className={`font-medium ${
+                          result.premium_comparison.difference > 0 
+                            ? 'text-prisere-maroon' 
+                            : 'text-prisere-teal'
+                        }`}>
+                          ${result.premium_comparison.renewal_premium.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="border-t pt-2 flex justify-between">
+                        <span className="text-gray-600">
+                          {result.premium_comparison.difference > 0 ? 'Annual Increase:' : 'Annual Savings:'}
+                        </span>
+                        <span className={`font-medium ${
+                          result.premium_comparison.difference > 0 
+                            ? 'text-prisere-maroon' 
+                            : 'text-prisere-teal'
+                        }`}>
+                          {result.premium_comparison.difference > 0 ? '+' : ''}${result.premium_comparison.difference.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className={`p-2 rounded text-xs ${
                         result.premium_comparison.difference > 0 
-                          ? 'text-prisere-maroon' 
-                          : 'text-prisere-teal'
+                          ? 'bg-red-50 text-red-800 border border-red-200' 
+                          : 'bg-teal-50 text-teal-800 border border-teal-200'
                       }`}>
-                        ${result.premium_comparison.renewal_premium.toLocaleString()}
-                      </span>
+                        {result.premium_comparison.difference > 0 
+                          ? "Premium increased while some coverage amounts decreased" 
+                          : "Premium decreased - review coverage changes"}
+                      </div>
                     </div>
-                    <div className="border-t pt-2 flex justify-between">
-                      <span className="text-gray-600">
-                        {result.premium_comparison.difference > 0 ? 'Annual Increase:' : 'Annual Savings:'}
-                      </span>
-                      <span className={`font-medium ${
-                        result.premium_comparison.difference > 0 
-                          ? 'text-prisere-maroon' 
-                          : 'text-prisere-teal'
-                      }`}>
-                        {result.premium_comparison.difference > 0 ? '+' : ''}${result.premium_comparison.difference.toLocaleString()}
-                      </span>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="border-l-4 border-l-prisere-mustard">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-lg" style={{ fontFamily: 'var(--font-heading)' }}>
+                      <TrendingUp className="h-4 w-4 text-prisere-mustard" />
+                      Financial Impact
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg">
+                      <p className="text-sm font-medium text-amber-800 mb-1">Premium Information Not Available</p>
+                      <p className="text-xs text-amber-700">
+                        Premium amounts could not be extracted from the policy documents. Please verify premium details with your insurance broker.
+                      </p>
                     </div>
-                    <div className={`p-2 rounded text-xs ${
-                      result.premium_comparison.difference > 0 
-                        ? 'bg-red-50 text-red-800 border border-red-200' 
-                        : 'bg-teal-50 text-teal-800 border border-teal-200'
-                    }`}>
-                      {result.premium_comparison.difference > 0 
-                        ? "Premium increased while some coverage amounts decreased" 
-                        : "Premium decreased - review coverage changes"}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Download Report */}
               <Card className="border-l-4 border-l-prisere-dark-gray">

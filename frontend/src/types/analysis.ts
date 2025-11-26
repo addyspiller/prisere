@@ -37,10 +37,10 @@ export interface EducationalInsight {
 }
 
 export interface PremiumComparison {
-  baseline_premium: number;
-  renewal_premium: number;
-  difference: number;
-  percentage_change: number;
+  baseline_premium: number | null;
+  renewal_premium: number | null;
+  difference: number | null;
+  percentage_change: number | null;
 }
 
 export interface AnalysisSummary {
