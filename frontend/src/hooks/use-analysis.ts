@@ -71,12 +71,14 @@ export function useAnalysisStatus(jobId: string, enabled = true) {
 }
 
 // Get analysis result
-export function useAnalysisResult(jobId: string, enabled = true) {
+export function useAnalysisResult(jobId: string, enabled = true, poll = false) {
   return useQuery({
     queryKey: ANALYSIS_QUERY_KEYS.result(jobId),
     queryFn: () => analysisApi.getAnalysisResult(jobId),
     enabled: enabled && !!jobId,
     staleTime: 5 * 60 * 1000, // Results are stable for 5 minutes
+    refetchInterval: poll ? 2000 : false, // Poll every 2 seconds when poll is true
+    retry: poll ? 3 : false, // Retry failed requests when polling
   });
 }
 

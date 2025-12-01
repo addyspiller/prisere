@@ -2,7 +2,7 @@
 
 import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAnalysisStatus } from "@/hooks/use-analysis";
+import { useAnalysisStatus, useAnalysisResult } from "@/hooks/use-analysis";
 import { Logo } from "@/components/brand/logo";
 import { LoadingSpinner } from "@/components/brand/loading-spinner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,10 +26,17 @@ export default function AnalysisPage({ params }: { params: Promise<{ jobId: stri
   const [currentTip, setCurrentTip] = useState(0);
   
   const { data: analysisJob } = useAnalysisStatus(resolvedParams.jobId);
+  
+  // Poll for result availability when job is completed
+  const { data: result } = useAnalysisResult(
+    resolvedParams.jobId,
+    analysisJob?.status === "completed",
+    true // Enable polling
+  );
 
   useEffect(() => {
-    // Redirect to results when analysis is completed
-    if (analysisJob?.status === "completed") {
+    // Redirect to results when analysis is completed AND result is available
+    if (analysisJob?.status === "completed" && result) {
       router.push(`/results/${resolvedParams.jobId}`);
       return;
     }
@@ -53,7 +60,7 @@ export default function AnalysisPage({ params }: { params: Promise<{ jobId: stri
       clearInterval(stepInterval);
       clearInterval(tipInterval);
     };
-  }, [analysisJob?.status, resolvedParams.jobId, router]);
+  }, [analysisJob?.status, result, resolvedParams.jobId, router]);
 
   const currentProgress = processingSteps[currentStep];
 
