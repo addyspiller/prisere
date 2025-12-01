@@ -59,12 +59,15 @@ export function useAnalysisStatus(jobId: string, enabled = true) {
     queryFn: () => analysisApi.getAnalysisStatus(jobId),
     enabled: enabled && !!jobId,
     refetchInterval: (query) => {
-      // Poll every 3 seconds if status is processing
-      if (query.state.data?.status === "processing") {
-        return 3000;
+      const status = query.state.data?.status;
+      
+      // Stop polling only when we reach a terminal state
+      if (status === "completed" || status === "failed") {
+        return false;
       }
-      // Stop polling if completed or failed
-      return false;
+      
+      // Keep polling for pending, processing, or any other state
+      return 3000;
     },
     refetchIntervalInBackground: true,
   });
