@@ -57,20 +57,48 @@ class AnalysisResult(Base):
 
     def to_dict(self):
         """Convert analysis result to dictionary representation (matches frontend API contract)."""
+        # Normalize changes to ensure all fields are JSON-serializable
+        normalized_changes = []
+        for change in (self.changes or []):
+            normalized_change = {
+                # String fields - convert None to empty string
+                "category": change.get("category") or "",
+                "change_type": change.get("change_type") or "",
+                "title": change.get("title") or "",
+                "description": change.get("description") or "",
+                "baseline_value": change.get("baseline_value") or "",
+                "renewal_value": change.get("renewal_value") or "",
+                "change_amount": change.get("change_amount") or "",
+                
+                # Numeric fields - keep None if not present, or use the value
+                "percentage_change": change.get("percentage_change"),
+                "confidence": change.get("confidence"),
+                
+                # Optional fields that might exist
+                "id": change.get("id"),
+                
+                # page_references - ensure it's always a dict with lists
+                "page_references": {
+                    "baseline": change.get("page_references", {}).get("baseline") or [] if isinstance(change.get("page_references"), dict) else [],
+                    "renewal": change.get("page_references", {}).get("renewal") or [] if isinstance(change.get("page_references"), dict) else []
+                }
+            }
+            normalized_changes.append(normalized_change)
+        
         return {
             "job_id": self.job_id,
             "status": "completed",  # Results only exist for completed jobs
             "summary": {
-                "total_changes": self.total_changes,
+                "total_changes": self.total_changes or 0,
                 "change_categories": self.change_categories or {},
             },
-            "changes": self.changes or [],
+            "changes": normalized_changes,
             "premium_comparison": self.premium_comparison or {},
             "suggested_actions": self.suggested_actions or [],
             "educational_insights": self.educational_insights or [],
             "metadata": {
-                "analysis_version": self.analysis_version,
-                "model_version": self.model_version,
+                "analysis_version": self.analysis_version or "1.0",
+                "model_version": self.model_version or "unknown",
                 "processing_time_seconds": self.processing_time_seconds,
                 "completed_at": self.created_at.isoformat() if self.created_at else None,
             },

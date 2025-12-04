@@ -245,13 +245,27 @@ async def get_analysis_result(
                 detail="Analysis result not found"
             )
         
-        # Return result
-        return result.to_dict()
+        # Serialize result to dict with error handling
+        try:
+            result_dict = result.to_dict()
+            logger.info(f"Successfully serialized result for job: {job_id}")
+            return result_dict
+        except Exception as serialization_error:
+            logger.error(f"Failed to serialize result for job {job_id}: {serialization_error}")
+            logger.error(f"Result object: total_changes={result.total_changes}, model={result.model_version}")
+            import traceback
+            logger.error(traceback.format_exc())
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to serialize analysis result"
+            )
         
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Failed to get analysis result: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get analysis result"
